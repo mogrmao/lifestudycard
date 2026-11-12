@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3A6B54"/>
+      <stop offset="0.55" stop-color="#24493A"/>
+      <stop offset="1" stop-color="#16302A"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.3" cy="0.22" r="0.75">
+      <stop offset="0" stop-color="#CFE3C9" stop-opacity="0.22"/>
+      <stop offset="0.6" stop-color="#CFE3C9" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ink" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F6F3E6"/>
+      <stop offset="1" stop-color="#E3E9D6"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#C9B27A" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#D8C38C"/>
+      <stop offset="1" stop-color="#C9B27A" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <rect width="1024" height="1024" fill="url(#glow)"/>
+  <!-- 細金框 -->
+  <rect x="150" y="150" width="724" height="724" rx="64" fill="none" stroke="#D8C38C" stroke-opacity="0.38" stroke-width="3"/>
+  <!-- 主字 -->
+  <text x="512" y="600" text-anchor="middle" font-family="Noto Serif CJK TC" font-weight="700" font-size="400" fill="url(#ink)">生</text>
+  <!-- 金色細線 -->
+  <rect x="300" y="664" width="424" height="3" fill="url(#gold)"/>
+  <!-- 進度格：五格已讀、兩格未讀 -->
+  <g transform="translate(512 726)">
+    <g transform="translate(-206 0)">
+      <rect x="0"   y="0" width="40" height="40" rx="9" fill="#E8EFDF"/>
+      <rect x="61"  y="0" width="40" height="40" rx="9" fill="#E8EFDF"/>
+      <rect x="122" y="0" width="40" height="40" rx="9" fill="#E8EFDF"/>
+      <rect x="183" y="0" width="40" height="40" rx="9" fill="#E8EFDF"/>
+      <rect x="244" y="0" width="40" height="40" rx="9" fill="#D8C38C"/>
+      <rect x="306.5" y="1.5" width="37" height="37" rx="8" fill="none" stroke="#E8EFDF" stroke-opacity="0.45" stroke-width="3"/>
+      <rect x="367.5" y="1.5" width="37" height="37" rx="8" fill="none" stroke="#E8EFDF" stroke-opacity="0.45" stroke-width="3"/>
+    </g>
+  </g>
+</svg>
