@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>生命讀經閱讀進度卡</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* 版面：上方總覽 → 篩選列 → 書卷卡片網格（每張卡以小方格呈現每一篇）→ 點卡片開啟該卷的篇目格 */
+:root{
+  --bg:#E9EFE8;
+  --surface:#F7FAF5;
+  --ink:#1B2A22;
+  --muted:#5D6F64;
+  --line:#D2DDD1;
+  --pine:#2E5B47;
+  --pine-deep:#1F4234;
+  --moss:#9DB89A;
+  --mist:#DCE7DA;
+  --gold:#A8915A;
+  --done-ink:#F4F8F2;
+  --shadow:0 1px 2px rgba(31,66,52,.06),0 8px 24px -12px rgba(31,66,52,.18);
+  --display:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1713;--surface:#16211B;--ink:#E3ECE4;--muted:#93A79A;--line:#2A3A31;
+    --pine:#6FAE8E;--pine-deep:#8CC4A6;--moss:#3F5E4C;--mist:#1D2C24;--gold:#C8B27A;--done-ink:#0F1713;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 28px -14px rgba(0,0,0,.6);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1713;--surface:#16211B;--ink:#E3ECE4;--muted:#93A79A;--line:#2A3A31;
+  --pine:#6FAE8E;--pine-deep:#8CC4A6;--moss:#3F5E4C;--mist:#1D2C24;--gold:#C8B27A;--done-ink:#0F1713;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 28px -14px rgba(0,0,0,.6);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit;color:inherit}
+a{color:var(--pine)}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+
+/* Header */
+header.top{background:linear-gradient(160deg,#21483A 0%,#2E5B47 55%,#3D6B55 100%);color:#EEF4EC;padding:40px 0 34px}
+:root[data-theme="dark"] header.top{background:linear-gradient(160deg,#13241C 0%,#1A3328 60%,#22402F 100%)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) header.top{background:linear-gradient(160deg,#13241C 0%,#1A3328 60%,#22402F 100%)}}
+.eyebrow{font-size:12px;letter-spacing:.24em;color:#BFD4BE;margin:0 0 6px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,4.6vw,40px);letter-spacing:.06em;margin:0;text-wrap:balance}
+.sub{margin:6px 0 0;color:#C9DAC7;font-size:14px}
+.summary{display:grid;grid-template-columns:minmax(220px,1.3fr) repeat(4,minmax(0,1fr));gap:14px;margin-top:28px}
+.tile{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:14px 16px}
+.tile .k{font-size:12px;color:#BFD4BE;letter-spacing:.1em}
+.tile .v{font-family:var(--display);font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.3}
+.tile .v small{font-family:var(--body);font-size:13px;font-weight:400;color:#C9DAC7;margin-left:4px}
+.tile.main .v{font-size:34px}
+.bar{height:6px;border-radius:99px;background:rgba(255,255,255,.14);overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;background:#CFE3C9;border-radius:99px;transition:width .4s ease}
+.continue{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-top:18px;font-size:14px;color:#D7E5D4}
+.continue a{color:#fff;font-weight:500;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.4);padding-bottom:1px}
+.continue a:hover{border-color:#fff}
+.sync{font-size:12px;color:#A9C2A8;margin-left:auto}
+
+/* Toolbar */
+.toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:22px 0 14px}
+.seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:3px}
+.seg button{border:0;background:transparent;padding:6px 16px;border-radius:99px;cursor:pointer;color:var(--muted);font-size:14px}
+.seg button[aria-pressed="true"]{background:var(--pine);color:var(--done-ink)}
+.check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--muted);cursor:pointer}
+.check input{accent-color:var(--pine);width:16px;height:16px}
+
+/* Section titles */
+.testament{display:flex;align-items:baseline;gap:12px;margin:18px 0 12px;border-bottom:1px solid var(--line);padding-bottom:8px}
+.testament h2{font-family:var(--display);font-size:20px;margin:0;letter-spacing:.08em}
+.testament span{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+
+/* Book cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px 14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:10px;transition:border-color .15s,box-shadow .15s,transform .15s;position:relative}
+.card:hover{border-color:var(--moss);box-shadow:var(--shadow);transform:translateY(-1px)}
+.card.complete{border-color:var(--pine)}
+.card.complete::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:0 3px 3px 0;background:var(--pine)}
+.card-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.card-name{font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:.04em}
+.card-count{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.dots{display:flex;flex-wrap:wrap;gap:3px}
+.dots i{width:7px;height:7px;border-radius:2px;background:var(--mist)}
+.dots i.on{background:var(--pine)}
+.card-foot{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--muted)}
+.pill{font-size:12px;padding:1px 9px;border-radius:99px;border:1px solid var(--line);color:var(--muted)}
+.pill.doing{border-color:var(--moss);color:var(--pine)}
+.pill.done{background:var(--pine);border-color:var(--pine);color:var(--done-ink)}
+.empty{color:var(--muted);padding:24px 0;font-size:14px}
+
+/* Panel */
+.overlay{position:fixed;inset:0;background:rgba(12,24,18,.45);display:none;align-items:flex-end;justify-content:center;z-index:20;padding:0}
+.overlay.open{display:flex}
+.panel{background:var(--surface);width:100%;max-width:760px;max-height:88%;overflow:auto;border-radius:18px 18px 0 0;padding:22px 22px 28px;box-shadow:0 -10px 40px rgba(0,0,0,.25)}
+@media (min-width:720px){.overlay{align-items:center;padding:24px}.panel{border-radius:18px}}
+.p-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.p-head h3{font-family:var(--display);font-size:24px;margin:0;letter-spacing:.05em}
+.p-meta{color:var(--muted);font-size:13px;margin-top:2px;font-variant-numeric:tabular-nums}
+.close{border:1px solid var(--line);background:transparent;border-radius:99px;padding:5px 14px;cursor:pointer;color:var(--muted);font-size:13px;white-space:nowrap}
+.close:hover{color:var(--ink);border-color:var(--moss)}
+.p-bar{height:6px;border-radius:99px;background:var(--mist);overflow:hidden;margin:14px 0 16px}
+.p-bar i{display:block;height:100%;background:var(--pine);transition:width .3s}
+.p-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.p-tools .hint{font-size:12.5px;color:var(--muted)}
+.cells{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:6px}
+.cell{aspect-ratio:1/1;border:1px solid var(--line);background:var(--bg);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;font-variant-numeric:tabular-nums;cursor:pointer;color:var(--muted);text-decoration:none;transition:background .12s,border-color .12s,color .12s}
+.cell:hover{border-color:var(--pine);color:var(--ink)}
+.cell.on{background:var(--pine);border-color:var(--pine);color:var(--done-ink);font-weight:500}
+.cell.next{border-color:var(--gold);border-width:2px;color:var(--ink)}
+.p-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;align-items:center}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:7px 14px;cursor:pointer;font-size:14px;text-decoration:none;color:var(--ink);display:inline-block}
+.btn:hover{border-color:var(--moss)}
+.btn.primary{background:var(--pine);border-color:var(--pine);color:var(--done-ink)}
+.btn.primary:hover{background:var(--pine-deep)}
+.btn.quiet{color:var(--muted)}
+.range{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:14px;color:var(--muted);margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+.range input{width:64px;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);text-align:center;font-variant-numeric:tabular-nums}
+
+/* Footer / backup */
+.backup{margin:28px 0 10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.backup summary{cursor:pointer;font-weight:500}
+.backup p{color:var(--muted);font-size:13.5px;margin:8px 0}
+.backup textarea{width:100%;min-height:80px;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:10px;font-family:ui-monospace,Menlo,monospace;font-size:12px}
+.backup .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;align-items:center}
+.msg{font-size:13px;color:var(--pine)}
+/* Member bar */
+.topline{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.topline .eyebrow{margin:0}
+.member{display:flex;align-items:center;gap:10px;font-size:13.5px;color:#D7E5D4}
+.member .who{display:flex;align-items:center;gap:8px}
+.initial{width:30px;height:30px;border-radius:50%;background:#CFE3C9;color:#1F4234;display:inline-flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:14px;flex:none}
+.hbtn{border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.08);color:#fff;border-radius:99px;padding:5px 14px;cursor:pointer;font-size:13px}
+.hbtn:hover{background:rgba(255,255,255,.16)}
+.hbtn.solid{background:#E6F0E2;color:#1F4234;border-color:#E6F0E2;font-weight:500}
+.hbtn.solid:hover{background:#fff}
+.tile .goal{font-size:12px;color:#BFD4BE;margin-top:2px}
+.tile .goal.met{color:#E6F0E2}
+
+/* Board */
+.board{margin:30px 0 0}
+.board-head{display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:12px}
+.board-head h2{font-family:var(--display);font-size:20px;margin:0;letter-spacing:.08em}
+.board-head .note{color:var(--muted);font-size:13px}
+.rows{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.row-m{display:grid;grid-template-columns:34px 36px minmax(0,1.4fr) minmax(0,2fr) auto;gap:12px;align-items:center;padding:12px 16px;border-top:1px solid var(--line)}
+.row-m:first-child{border-top:0}
+.row-m.me{background:var(--mist)}
+.rank{font-family:var(--display);font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums;text-align:center}
+.row-m:nth-child(-n+3) .rank{color:var(--gold)}
+.row-m .initial{background:var(--pine);color:var(--done-ink)}
+.nm{min-width:0}
+.nm b{display:block;font-weight:500;overflow-wrap:anywhere}
+.nm span{display:block;font-size:12.5px;color:var(--muted);overflow-wrap:anywhere}
+.mbar{height:6px;border-radius:99px;background:var(--mist);overflow:hidden}
+.row-m.me .mbar{background:var(--bg)}
+.mbar i{display:block;height:100%;background:var(--pine)}
+.mstat{font-size:12.5px;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums}
+.mnum{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.mnum b{font-family:var(--display);font-size:18px}
+.mnum span{display:block;font-size:12px;color:var(--muted)}
+.board-empty{padding:22px 18px;color:var(--muted);font-size:14px}
+@media (max-width:620px){.row-m{grid-template-columns:28px 32px minmax(0,1fr) auto}.row-m .mprog{grid-column:3/-1;grid-row:2}}
+
+/* Member form */
+.form{display:grid;gap:14px;margin-top:16px}
+.field label{display:block;color:var(--ink);font-size:13.5px;font-weight:500;margin-bottom:5px}
+.field .help{font-size:12.5px;color:var(--muted);margin-top:4px}
+.field input[type=text],.field input[type=number],.field input[type=password]{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.field input:focus{border-color:var(--pine);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--pine) 20%,transparent)}
+.ferr{color:#B4533F;font-size:13px;min-height:1em}
+.panel.narrow{max-width:480px}
+.intro{color:var(--muted);font-size:14px;margin:8px 0 0}
+
+footer{color:var(--muted);font-size:12.5px;padding:18px 0 40px;text-align:center}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:99px;font-size:13px;opacity:0;pointer-events:none;transition:all .25s;z-index:30}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media (max-width:860px){.summary{grid-template-columns:repeat(2,minmax(0,1fr))}.tile.main{grid-column:1/-1}}
+@media (max-width:420px){.wrap{padding:0 16px}.grid{grid-template-columns:1fr}.sync{margin-left:0;width:100%}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="topline">
+      <p class="eyebrow">LIFE-STUDY OF THE BIBLE</p>
+      <div class="member" id="memberBar"></div>
+    </div>
+    <h1>生命讀經 閱讀進度卡</h1>
+    <p class="sub" id="sub">新舊約生命讀經，每讀完一篇就點一格。</p>
+    <div class="summary">
+      <div class="tile main">
+        <div class="k">全部進度</div>
+        <div class="v"><span id="sPct">0%</span><small id="sAll">0 / 0 篇</small></div>
+        <div class="bar"><i id="sBar" style="width:0"></i></div>
+      </div>
+      <div class="tile"><div class="k">舊約</div><div class="v" id="sOT">0<small>/ 0</small></div></div>
+      <div class="tile"><div class="k">新約</div><div class="v" id="sNT">0<small>/ 0</small></div></div>
+      <div class="tile"><div class="k">今日已讀</div><div class="v" id="sToday">0<small>篇</small></div><div class="goal" id="sGoal"></div></div>
+      <div class="tile"><div class="k">連續閱讀</div><div class="v" id="sStreak">0<small>天</small></div></div>
+    </div>
+    <div class="continue">
+      <span id="contText">從創世記第一篇開始</span>
+      <a id="contLink" href="https://line.twgbr.org/life-study/1.html" target="_blank" rel="noopener">前往閱讀</a>
+      <span class="sync" id="sync">進度儲存在此瀏覽器</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="toolbar">
+    <div class="seg" role="group" aria-label="篩選書卷">
+      <button type="button" data-f="all" aria-pressed="true">全部</button>
+      <button type="button" data-f="ot" aria-pressed="false">舊約</button>
+      <button type="button" data-f="nt" aria-pressed="false">新約</button>
+    </div>
+    <label class="check" for="hideDone"><input type="checkbox" id="hideDone">隱藏已讀完的書卷</label>
+  </div>
+  <div id="list"></div>
+
+  <section class="board" id="board" hidden>
+    <div class="board-head">
+      <h2>會員進度榜</h2>
+      <div class="seg" role="group" aria-label="排序方式">
+        <button type="button" data-s="read" aria-pressed="true">依已讀篇數</button>
+        <button type="button" data-s="streak" aria-pressed="false">依連續天數</button>
+        <button type="button" data-s="today" aria-pressed="false">依今日篇數</button>
+      </div>
+    </div>
+    <div class="rows" id="rows"></div>
+    <p class="note" style="color:var(--muted);font-size:13px;margin:8px 0 0" id="boardNote"></p>
+  </section>
+
+  <details class="backup">
+    <summary>備份與還原進度</summary>
+    <p>進度會自動儲存。若要換手機或電腦，可複製下方的進度碼，到另一台裝置貼上還原。</p>
+    <textarea id="code" aria-label="進度碼" spellcheck="false"></textarea>
+    <div class="row">
+      <button type="button" class="btn" id="copyBtn">複製進度碼</button>
+      <button type="button" class="btn" id="restoreBtn">用上方進度碼還原</button>
+      <button type="button" class="btn quiet" id="resetBtn">清除全部進度</button>
+      <span class="msg" id="codeMsg"></span>
+    </div>
+  </details>
+</main>
+
+<footer>
+  篇目與連結取自 <a href="https://line.twgbr.org/life-study/index.html" target="_blank" rel="noopener">臺灣福音書房　新舊約生命讀經</a>
+</footer>
+
+<div class="overlay" id="overlay" aria-hidden="true">
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="pTitle">
+    <div class="p-head">
+      <div>
+        <h3 id="pTitle"></h3>
+        <div class="p-meta" id="pMeta"></div>
+      </div>
+      <button type="button" class="close" id="pClose">關閉</button>
+    </div>
+    <div class="p-bar"><i id="pBar"></i></div>
+    <div class="p-tools">
+      <div class="seg" role="group" aria-label="點擊格子時">
+        <button type="button" data-m="mark" aria-pressed="true">點格子：標記已讀</button>
+        <button type="button" data-m="open" aria-pressed="false">點格子：開啟並標記</button>
+      </div>
+      <span class="hint" id="pHint">金色框為下一篇</span>
+    </div>
+    <div class="cells" id="cells"></div>
+    <div class="range">
+      標記第 <input type="number" id="rFrom" min="1" aria-label="起始篇"> 至 <input type="number" id="rTo" min="1" aria-label="結束篇"> 篇
+      <button type="button" class="btn" id="rMark">設為已讀</button>
+      <button type="button" class="btn quiet" id="rClear">設為未讀</button>
+    </div>
+    <div class="p-actions">
+      <a class="btn primary" id="pNext" target="_blank" rel="noopener" href="#">閱讀下一篇</a>
+      <button type="button" class="btn" id="pAll">整卷標記已讀</button>
+      <button type="button" class="btn quiet" id="pNone">清除本卷</button>
+    </div>
+  </div>
+</div>
+<div class="overlay" id="aOverlay" aria-hidden="true">
+  <div class="panel narrow" role="dialog" aria-modal="true" aria-labelledby="aTitle">
+    <div class="p-head">
+      <div>
+        <h3 id="aTitle">會員登入</h3>
+        <p class="intro" id="aIntro"></p>
+      </div>
+      <button type="button" class="close" id="aClose">關閉</button>
+    </div>
+    <form class="form" id="aForm" novalidate>
+      <div class="field">
+        <label for="aUser">帳號</label>
+        <input type="text" id="aUser" maxlength="20" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="英文字母、數字或底線，3–20 字">
+      </div>
+      <div class="field">
+        <label for="aPass">密碼</label>
+        <input type="password" id="aPass" autocomplete="current-password" placeholder="至少 6 個字元">
+      </div>
+      <div class="field su-only" hidden>
+        <label for="aPass2">再輸入一次密碼</label>
+        <input type="password" id="aPass2" autocomplete="new-password">
+      </div>
+      <div class="field su-only" hidden>
+        <label for="aNick">暱稱</label>
+        <input type="text" id="aNick" maxlength="20" placeholder="例如：以利亞弟兄">
+        <div class="help">顯示在會員進度榜上的名字。</div>
+      </div>
+      <div class="field su-only" hidden>
+        <label for="aGroup">所屬召會或小排（選填）</label>
+        <input type="text" id="aGroup" maxlength="30" placeholder="例如：台北市召會 三會所">
+      </div>
+      <div class="field su-only" hidden>
+        <label for="aGoal">每日目標篇數</label>
+        <input type="number" id="aGoal" min="1" max="50" value="1">
+        <div class="help">一天讀一篇，約五年半可讀完新舊約生命讀經；一天三篇約一年十個月。</div>
+      </div>
+      <label class="check su-only" for="aShow" hidden><input type="checkbox" id="aShow" checked>在會員進度榜公開我的進度</label>
+      <div class="ferr" id="aErr" role="alert"></div>
+      <div class="p-actions" style="margin-top:0">
+        <button type="submit" class="btn primary" id="aSubmit">登入</button>
+        <button type="button" class="btn quiet" id="aSwitch">還沒有帳號？註冊會員</button>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="overlay" id="mOverlay" aria-hidden="true">
+  <div class="panel narrow" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="p-head">
+      <div>
+        <h3 id="mTitle">會員資料</h3>
+        <p class="intro" id="fAccount"></p>
+      </div>
+      <button type="button" class="close" id="mClose">關閉</button>
+    </div>
+    <form class="form" id="mForm" novalidate>
+      <div class="field">
+        <label for="fNick">暱稱</label>
+        <input type="text" id="fNick" maxlength="20">
+      </div>
+      <div class="field">
+        <label for="fGroup">所屬召會或小排（選填）</label>
+        <input type="text" id="fGroup" maxlength="30">
+      </div>
+      <div class="field">
+        <label for="fGoal">每日目標篇數</label>
+        <input type="number" id="fGoal" min="1" max="50" value="1">
+      </div>
+      <label class="check" for="fShow"><input type="checkbox" id="fShow" checked>在會員進度榜公開我的進度</label>
+      <div class="ferr" id="fErr" role="alert"></div>
+      <div class="p-actions" style="margin-top:0">
+        <button type="submit" class="btn primary" id="fSave">儲存</button>
+      </div>
+    </form>
+    <div class="range" style="display:grid;gap:10px">
+      <strong style="color:var(--ink);font-weight:500">修改密碼</strong>
+      <div class="field"><label for="pwOld">目前的密碼</label><input type="password" id="pwOld" autocomplete="current-password"></div>
+      <div class="field"><label for="pwNew">新密碼</label><input type="password" id="pwNew" autocomplete="new-password" placeholder="至少 6 個字元"></div>
+      <div class="ferr" id="pwErr" role="alert"></div>
+      <div><button type="button" class="btn" id="pwSave">更新密碼</button></div>
+    </div>
+    <div class="p-actions">
+      <button type="button" class="btn" id="logoutBtn">登出</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script type="module">
+// ================================================================
+//  Firebase 專案設定：依「設定說明.md」第 3 步，把你的設定貼在下面
+// ================================================================
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDRxihlKJd5beSKqEEfZFXhucd8xhQ_slQ",
+  authDomain: "lifestudy-773a1.firebaseapp.com",
+  projectId: "lifestudy-773a1",
+  appId: "1:732188023008:web:e6d768e10d0e65ff279885"
+};
+// ================================================================
+
+// 篇數依 line.twgbr.org/life-study 各卷頁面；撒上下、王上下、代上下在原站共用同一套篇目，此處合併為一卡
+const BOOKS = [
+ ["1","創世記",120,"ot"],["2","出埃及記",185,"ot"],["3","利未記",64,"ot"],["4","民數記",53,"ot"],["5","申命記",30,"ot"],
+ ["6","約書亞記",15,"ot"],["7","士師記",10,"ot"],["8","路得記",8,"ot"],["9","撒母耳記上、下",38,"ot"],["11","列王紀上、下",23,"ot"],
+ ["13","歷代志上、下",13,"ot"],["15","以斯拉記",5,"ot"],["16","尼希米記",5,"ot"],["17","以斯帖記",3,"ot"],["18","約伯記",38,"ot"],
+ ["19","詩篇",45,"ot"],["20","箴言",8,"ot"],["21","傳道書",2,"ot"],["22","雅歌",10,"ot"],["23","以賽亞書",54,"ot"],
+ ["24","耶利米書",40,"ot"],["25","耶利米哀歌",4,"ot"],["26","以西結書",27,"ot"],["27","但以理書",17,"ot"],["28","何西阿書",9,"ot"],
+ ["29","約珥書",7,"ot"],["30","阿摩司書",3,"ot"],["31","俄巴底亞書",1,"ot"],["32","約拿書",1,"ot"],["33","彌迦書",4,"ot"],
+ ["34","那鴻書",1,"ot"],["35","哈巴谷書",3,"ot"],["36","西番雅書",1,"ot"],["37","哈該書",1,"ot"],["38","撒迦利亞書",15,"ot"],["39","瑪拉基書",4,"ot"],
+ ["40","馬太福音",72,"nt"],["41","馬可福音",70,"nt"],["42","路加福音",79,"nt"],["43","約翰福音",51,"nt"],["44","使徒行傳",72,"nt"],
+ ["45","羅馬書",69,"nt"],["46","哥林多前書",69,"nt"],["47","哥林多後書",59,"nt"],["48","加拉太書",46,"nt"],["49","以弗所書",97,"nt"],
+ ["50","腓立比書",62,"nt"],["51","歌羅西書",65,"nt"],["52","帖撒羅尼迦前書",24,"nt"],["53","帖撒羅尼迦後書",7,"nt"],["54","提摩太前書",12,"nt"],
+ ["55","提摩太後書",8,"nt"],["56","提多書",6,"nt"],["57","腓利門書",2,"nt"],["58","希伯來書",69,"nt"],["59","雅各書",14,"nt"],
+ ["60","彼得前書",34,"nt"],["61","彼得後書",13,"nt"],["62","約翰一書",40,"nt"],["63","約翰二書",2,"nt"],["64","約翰三書",2,"nt"],
+ ["65","猶大書",5,"nt"],["66","啟示錄",68,"nt"]
+].map(([id,name,n,t])=>({id,name,n,t}));
+const BYID = Object.fromEntries(BOOKS.map(b=>[b.id,b]));
+const BASE = "https://line.twgbr.org/life-study/";
+const url = (id,m)=> BASE + (m===1 ? id+".html" : id+"_"+m+".html");
+const KEY = "lifestudy-progress-v1";
+const $=s=>document.getElementById(s);
+
+let state = {read:{}, log:{}, last:null, updated:0};
+let sets = {};          // id -> Set of read message numbers
+let filter = "all", hideDone = false, mode = "mark", openId = null;
+
+const todayStr = ()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+function loadSets(){ sets={}; for(const b of BOOKS){ const s=state.read[b.id]; sets[b.id]=new Set((s?String(s).split(","):[]).filter(Boolean).map(Number).filter(x=>x>=1&&x<=b.n)); } }
+function packSets(){ const r={}; for(const id in sets){ if(sets[id].size) r[id]=[...sets[id]].sort((a,b)=>a-b).join(","); } state.read=r; }
+
+// ---------- persistence ----------
+function saveLocal(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+function loadLocal(){ try{ const s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s&&s.read) state=Object.assign({read:{},log:{},last:null,updated:0},s); }catch(e){} }
+// ---------- membership (Firebase) ----------
+// 帳號密碼由 Firebase Authentication 管理（密碼只以雜湊保存在 Firebase，網站本身看不到）。
+// 帳號在內部轉成 「帳號@MEMBER_DOMAIN」 的形式登入；不會寄任何信。
+// 私人進度存在 progress/<uid>（只有本人能讀寫）；會員暱稱與進度摘要存在 members/<uid>（登入會員可讀，本人可寫）。
+const MEMBER_DOMAIN = "members.lifestudy.app";
+const CONFIGURED = FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey && !/請填入/.test(FIREBASE_CONFIG.apiKey);
+let FB=null, auth=null, fs=null, uid=null, member=null, memberStatus=CONFIGURED?"loading":"unconfigured";
+let boardDocs=[], boardSort="read", boardUnsub=null;
+
+const toEmail = u => u.toLowerCase()+"@"+MEMBER_DOMAIN;
+const USER_RE = /^[a-zA-Z0-9_]{3,20}$/;
+
+function makeWriter(getPath){
+  let busy=false, pending=null;
+  async function run(){
+    if(busy||!pending) return; busy=true;
+    const body=pending; pending=null;
+    try{ await FB.setDoc(FB.doc(fs,...getPath()), body); onWriteOk(); }
+    catch(e){ onWriteFail(e); }
+    busy=false; if(pending) run();
+  }
+  return body=>{ if(!uid) return; pending=JSON.parse(JSON.stringify(body)); run(); };
+}
+const writeProgress = makeWriter(()=>["progress",uid]);
+const writeMember = makeWriter(()=>["members",uid]);
+function onWriteOk(){ if(member) setSync("已同步到你的會員帳號"); }
+function onWriteFail(e){ setSync(e&&e.code==="permission-denied" ? "沒有寫入權限，請重新登入" : "暫時無法同步，進度仍存在此瀏覽器"); }
+
+function stats(){
+  const [r]=totals(), [ro]=totals("ot"), [rn]=totals("nt");
+  return {read:r, ot:ro, nt:rn, books:BOOKS.filter(b=>sets[b.id].size===b.n).length,
+          streak:streak(), today:state.log[todayStr()]||0, todayDate:todayStr(), lastAt:state.updated||Date.now()};
+}
+function memberBody(){
+  return {nickname:member.nickname, group:member.group||"", goal:member.goal||1, showOnBoard:!!member.showOnBoard,
+          joinedAt:member.joinedAt||Date.now(), stats: member.showOnBoard? stats() : null, updated:Date.now()};
+}
+let syncTimer=null;
+function persist(){
+  state.updated=Date.now(); state.uid=uid||null; packSets(); saveLocal(); updateCode();
+  if(member&&uid){
+    clearTimeout(syncTimer);
+    syncTimer=setTimeout(()=>{ writeProgress(state); writeMember(memberBody()); },700);
+  }
+}
+function setSync(t){ $("sync").textContent=t; }
+
+async function connectRemote(){
+  renderMemberBar();
+  if(!CONFIGURED){ setSync("進度儲存在此瀏覽器"); return; }
+  try{
+    const V="10.12.2", base="https://www.gstatic.com/firebasejs/"+V+"/";
+    const [app,a,f]=await Promise.all([import(base+"firebase-app.js"),import(base+"firebase-auth.js"),import(base+"firebase-firestore.js")]);
+    FB=Object.assign({},a,f);
+    const fApp=app.initializeApp(FIREBASE_CONFIG);
+    auth=a.getAuth(fApp); fs=f.getFirestore(fApp);
+    await a.setPersistence(auth, a.browserLocalPersistence);
+    a.onAuthStateChanged(auth, onAuth);
+  }catch(e){ memberStatus="error"; renderMemberBar(); setSync("無法連上會員系統，進度先存在此瀏覽器"); }
+}
+
+let importGuest=false;   // 註冊時把訪客進度帶進新帳號
+async function onAuth(u){
+  if(boardUnsub){ boardUnsub(); boardUnsub=null; boardDocs=[]; }
+  if(!u){
+    uid=null; member=null; memberStatus="guest";
+    if(state.uid){ state={read:{},log:{},last:null,updated:0,uid:null}; loadSets(); saveLocal(); updateCode(); }
+    setSync("目前為訪客，進度只存在此瀏覽器");
+    renderMemberBar(); renderAll(); return;
+  }
+  uid=u.uid; memberStatus="loading"; renderMemberBar();
+  try{
+    const [ms,ps]=await Promise.all([FB.getDoc(FB.doc(fs,"members",uid)),FB.getDoc(FB.doc(fs,"progress",uid))]);
+    member = ms.exists()? Object.assign({},ms.data()) : (member&&member._pending ? member : {nickname:(u.email||"").split("@")[0],group:"",goal:1,showOnBoard:true,joinedAt:Date.now()});
+    delete member._pending;
+    const data = ps.exists()? ps.data() : null;
+    if(data && data.read){
+      state=Object.assign({read:{},log:{},last:null,updated:0},JSON.parse(JSON.stringify(data))); state.uid=uid;
+    } else if(importGuest && !state.uid){
+      state.uid=uid;               // 新註冊：沿用訪客進度
+    } else {
+      state={read:{},log:{},last:null,updated:0,uid:uid};
+    }
+    importGuest=false;
+    loadSets(); saveLocal(); updateCode();
+    memberStatus="member";
+    if(!ms.exists()) writeMember(memberBody());
+    if(!data) writeProgress(state);
+    setSync("已同步到你的會員帳號，換裝置登入也接得上");
+    subscribeBoard();
+  }catch(e){
+    memberStatus="member"; setSync("暫時無法讀取雲端進度，請稍後重新整理");
+  }
+  renderMemberBar(); renderAll();
+}
+
+function renderMemberBar(){
+  const bar=$("memberBar"); bar.textContent="";
+  const add=(tag,cls,text)=>{ const el=document.createElement(tag); if(cls) el.className=cls; if(text!=null) el.textContent=text; bar.appendChild(el); return el; };
+  const btn=(text,cls,fn)=>{ const b=add("button",cls,text); b.type="button"; b.onclick=fn; return b; };
+  if(memberStatus==="unconfigured"){ add("span",null,"會員系統尚未設定"); return; }
+  if(memberStatus==="error"){ add("span",null,"會員系統暫時無法連線"); return; }
+  if(memberStatus==="loading"){ add("span",null,"正在確認會員身分…"); return; }
+  if(memberStatus==="member"&&member){
+    const who=add("span","who"); const ini=document.createElement("span"); ini.className="initial"; ini.textContent=(member.nickname||"友").trim().slice(0,1);
+    const nm=document.createElement("span"); nm.textContent=(member.nickname||"會員")+"，平安";
+    who.append(ini,nm);
+    btn("會員資料","hbtn",()=>openProfile());
+    return;
+  }
+  btn("登入","hbtn",()=>openAuth("login"));
+  btn("註冊會員","hbtn solid",()=>openAuth("signup"));
+}
+
+// ---------- dialogs ----------
+let dLast=null;
+function showDlg(id){ dLast=document.activeElement; $(id).classList.add("open"); $(id).setAttribute("aria-hidden","false"); }
+function hideDlg(id){ $(id).classList.remove("open"); $(id).setAttribute("aria-hidden","true"); if(dLast&&dLast.focus) dLast.focus(); }
+function anyDlgOpen(){ return ["aOverlay","mOverlay"].find(id=>$(id).classList.contains("open")); }
+
+const AUTH_ERR = {
+  "auth/email-already-in-use":"這個帳號已經有人使用，請換一個。",
+  "auth/invalid-credential":"帳號或密碼不正確。",
+  "auth/wrong-password":"帳號或密碼不正確。",
+  "auth/user-not-found":"帳號或密碼不正確。",
+  "auth/invalid-email":"帳號格式不正確，只能用英文字母、數字或底線。",
+  "auth/weak-password":"密碼至少需要 6 個字元。",
+  "auth/too-many-requests":"嘗試次數太多，請過幾分鐘再試。",
+  "auth/network-request-failed":"網路連線失敗，請確認網路後再試。",
+  "auth/operation-not-allowed":"管理者尚未在 Firebase 開啟「電子郵件/密碼」登入方式。",
+  "auth/requires-recent-login":"為了安全，請先登出再登入一次，然後再修改密碼。"
+};
+const authMsg = e => AUTH_ERR[e&&e.code] || "發生錯誤，請稍後再試。"+(e&&e.code?"（"+e.code+"）":"");
+
+let authMode="login";
+function openAuth(mode){
+  if(!auth){ toast("會員系統尚未就緒"); return; }
+  authMode=mode;
+  const su=mode==="signup";
+  $("aTitle").textContent= su? "註冊會員" : "會員登入";
+  $("aIntro").textContent= su? "註冊後，閱讀進度會存在你的帳號裡，換手機或電腦登入都接得上。這個瀏覽器目前的進度會一併帶入。" : "輸入你註冊時設定的帳號與密碼。";
+  document.querySelectorAll(".su-only").forEach(el=>el.hidden=!su);
+  $("aPass").autocomplete= su? "new-password" : "current-password";
+  $("aSubmit").textContent= su? "註冊並登入" : "登入";
+  $("aSwitch").textContent= su? "已經有帳號？登入" : "還沒有帳號？註冊會員";
+  $("aErr").textContent=""; $("aPass").value=""; $("aPass2").value="";
+  if(su){ $("aUser").value=""; $("aNick").value=""; $("aGroup").value=""; $("aGoal").value=1; $("aShow").checked=true; }
+  showDlg("aOverlay"); setTimeout(()=>$("aUser").focus(),30);
+}
+$("aSwitch").onclick=()=>openAuth(authMode==="signup"?"login":"signup");
+$("aClose").onclick=()=>hideDlg("aOverlay");
+$("aOverlay").addEventListener("click",e=>{ if(e.target.id==="aOverlay") hideDlg("aOverlay"); });
+$("aForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const user=$("aUser").value.trim(), pass=$("aPass").value, err=$("aErr");
+  if(!USER_RE.test(user)){ err.textContent="帳號需為 3–20 個英文字母、數字或底線。"; $("aUser").focus(); return; }
+  if(pass.length<6){ err.textContent="密碼至少需要 6 個字元。"; $("aPass").focus(); return; }
+  let profile=null;
+  if(authMode==="signup"){
+    if(pass!==$("aPass2").value){ err.textContent="兩次輸入的密碼不一樣。"; $("aPass2").focus(); return; }
+    const nick=$("aNick").value.trim(); if(!nick){ err.textContent="請填寫暱稱。"; $("aNick").focus(); return; }
+    let goal=parseInt($("aGoal").value,10); if(isNaN(goal)) goal=1;
+    profile={nickname:nick.slice(0,20), group:$("aGroup").value.trim().slice(0,30), goal:Math.min(50,Math.max(1,goal)), showOnBoard:$("aShow").checked, joinedAt:Date.now(), _pending:true};
+  }
+  $("aSubmit").disabled=true; err.textContent="";
+  try{
+    if(profile){
+      member=profile; importGuest=true;
+      await FB.createUserWithEmailAndPassword(auth,toEmail(user),pass);
+      toast("歡迎加入，"+profile.nickname);
+    } else {
+      await FB.signInWithEmailAndPassword(auth,toEmail(user),pass);
+      toast("登入成功");
+    }
+    hideDlg("aOverlay");
+  }catch(ex){ if(profile){ member=null; importGuest=false; } err.textContent=authMsg(ex); }
+  finally{ $("aSubmit").disabled=false; }
+});
+
+function openProfile(){
+  $("fNick").value=member.nickname||""; $("fGroup").value=member.group||""; $("fGoal").value=member.goal||1; $("fShow").checked=!!member.showOnBoard;
+  $("fErr").textContent=""; $("pwOld").value=""; $("pwNew").value=""; $("pwErr").textContent="";
+  $("fAccount").textContent="登入帳號："+((auth.currentUser&&auth.currentUser.email)||"").split("@")[0];
+  showDlg("mOverlay"); setTimeout(()=>$("fNick").focus(),30);
+}
+$("mClose").onclick=()=>hideDlg("mOverlay");
+$("mOverlay").addEventListener("click",e=>{ if(e.target.id==="mOverlay") hideDlg("mOverlay"); });
+$("mForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const nick=$("fNick").value.trim(); if(!nick){ $("fErr").textContent="請填寫暱稱。"; $("fNick").focus(); return; }
+  let goal=parseInt($("fGoal").value,10); if(isNaN(goal)) goal=1;
+  const prev=member;
+  member=Object.assign({},member,{nickname:nick.slice(0,20),group:$("fGroup").value.trim().slice(0,30),goal:Math.min(50,Math.max(1,goal)),showOnBoard:$("fShow").checked});
+  $("fSave").disabled=true;
+  try{ await FB.setDoc(FB.doc(fs,"members",uid),memberBody()); hideDlg("mOverlay"); renderMemberBar(); renderAll(); toast("會員資料已更新"); }
+  catch(ex){ member=prev; $("fErr").textContent="儲存失敗，請稍後再試。"; }
+  finally{ $("fSave").disabled=false; }
+});
+$("pwSave").onclick=async()=>{
+  const o=$("pwOld").value, n=$("pwNew").value, er=$("pwErr");
+  if(n.length<6){ er.textContent="新密碼至少需要 6 個字元。"; return; }
+  try{
+    const cred=FB.EmailAuthProvider.credential(auth.currentUser.email,o);
+    await FB.reauthenticateWithCredential(auth.currentUser,cred);
+    await FB.updatePassword(auth.currentUser,n);
+    $("pwOld").value=""; $("pwNew").value=""; er.textContent=""; toast("密碼已更新");
+  }catch(ex){ er.textContent= (ex&&(ex.code==="auth/invalid-credential"||ex.code==="auth/wrong-password")) ? "目前的密碼不正確。" : authMsg(ex); }
+};
+$("logoutBtn").onclick=async()=>{
+  clearTimeout(syncTimer);
+  if(member&&uid){ try{ await FB.setDoc(FB.doc(fs,"progress",uid),JSON.parse(JSON.stringify(state))); }catch(e){} }
+  await FB.signOut(auth); hideDlg("mOverlay"); toast("已登出");
+};
+
+// ---------- board ----------
+function subscribeBoard(){
+  if(!fs||!uid||boardUnsub) return;
+  $("rows").innerHTML='<div class="board-empty">正在載入會員進度…</div>';
+  boardUnsub=FB.onSnapshot(FB.collection(fs,"members"),snap=>{
+    boardDocs=snap.docs.map(d=>Object.assign({id:d.id},d.data()));
+    renderBoard();
+  },()=>{ $("rows").innerHTML='<div class="board-empty">暫時無法載入會員進度榜。</div>'; });
+}
+function renderBoard(){
+  const board=$("board"); board.hidden = memberStatus==="unconfigured"||memberStatus==="error";
+  const rows=$("rows");
+  if(memberStatus!=="member"){
+    rows.innerHTML='<div class="board-empty">登入會員後，就能看到大家的閱讀進度，彼此激勵。</div>';
+    $("boardNote").textContent=""; return;
+  }
+  if(!boardUnsub) return;
+  const total=totals()[1], today=todayStr(), yday=yesterday();
+  const list=boardDocs.filter(m=>m.showOnBoard&&m.stats&&typeof m.nickname==="string").map(m=>{
+    const s=m.stats||{}; return {id:m.id, nick:String(m.nickname).slice(0,20), group:String(m.group||"").slice(0,30), goal:+m.goal||1,
+      read:+s.read||0, ot:+s.ot||0, nt:+s.nt||0, books:+s.books||0,
+      streak: (s.todayDate===today || s.todayDate===yday) ? (+s.streak||0) : 0,
+      today: s.todayDate===today ? (+s.today||0) : 0};
+  });
+  const key=boardSort; list.sort((a,b)=>(b[key]-a[key])||(b.read-a.read));
+  rows.textContent="";
+  const count=boardDocs.filter(m=>typeof m.nickname==="string").length;
+  $("boardNote").textContent="共 "+count+" 位會員，只顯示選擇公開進度的 "+list.length+" 位。";
+  if(!list.length){ const d=document.createElement("div"); d.className="board-empty"; d.textContent="還沒有會員公開進度。到「會員資料」勾選公開，就會出現在這裡。"; rows.appendChild(d); return; }
+  list.forEach((m,i)=>{
+    const row=document.createElement("div"); row.className="row-m"+(m.id===uid?" me":"");
+    const rank=document.createElement("div"); rank.className="rank"; rank.textContent=i+1;
+    const ini=document.createElement("span"); ini.className="initial"; ini.textContent=m.nick.trim().slice(0,1)||"友";
+    const nm=document.createElement("div"); nm.className="nm";
+    const b=document.createElement("b"); b.textContent=m.nick+(m.id===uid?"（我）":"");
+    const g=document.createElement("span"); g.textContent=m.group||"　";
+    nm.append(b,g);
+    const pr=document.createElement("div"); pr.className="mprog";
+    const bar=document.createElement("div"); bar.className="mbar"; const fill=document.createElement("i"); fill.style.width=Math.min(100,m.read/total*100)+"%"; bar.appendChild(fill);
+    const st=document.createElement("div"); st.className="mstat"; st.textContent=`舊約 ${m.ot}・新約 ${m.nt}・讀完 ${m.books} 卷・今日 ${m.today}/${m.goal}`;
+    pr.append(bar,st);
+    const num=document.createElement("div"); num.className="mnum";
+    const big=document.createElement("b"); const small=document.createElement("span");
+    if(key==="streak"){ big.textContent=m.streak; small.textContent="連續天數"; }
+    else if(key==="today"){ big.textContent=m.today; small.textContent="今日篇數"; }
+    else { big.textContent=m.read; small.textContent=(m.read/total*100).toFixed(1)+"%"; }
+    num.append(big,small);
+    row.append(rank,ini,nm,pr,num); rows.appendChild(row);
+  });
+}
+function yesterday(){ const d=new Date(); d.setDate(d.getDate()-1); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+document.querySelectorAll("[data-s]").forEach(btn=>btn.addEventListener("click",()=>{
+  boardSort=btn.dataset.s; document.querySelectorAll("[data-s]").forEach(x=>x.setAttribute("aria-pressed",x===btn)); renderBoard();
+}));
+
+// ---------- actions ----------
+function bumpLog(delta){
+  const t=todayStr(); state.log[t]=Math.max(0,(state.log[t]||0)+delta);
+  const keys=Object.keys(state.log).sort(); while(keys.length>400){ delete state.log[keys.shift()]; }
+}
+function setRead(id,m,on){
+  const s=sets[id]; const had=s.has(m); if(had===on) return 0;
+  on? s.add(m) : s.delete(m); bumpLog(on?1:-1); if(on) state.last={id,m}; return 1;
+}
+function nextUnread(id){ const b=BYID[id]; for(let m=1;m<=b.n;m++) if(!sets[id].has(m)) return m; return null; }
+
+// ---------- render ----------
+function totals(t){ let r=0,n=0; for(const b of BOOKS){ if(t&&b.t!==t) continue; r+=sets[b.id].size; n+=b.n; } return [r,n]; }
+function streak(){
+  let c=0; const d=new Date();
+  if(!(state.log[todayStr()]>0)) d.setDate(d.getDate()-1);
+  for(;;){ const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); if(state.log[k]>0){c++;d.setDate(d.getDate()-1);} else break; }
+  return c;
+}
+function renderSummary(){
+  const [r,n]=totals(); const [ro,no]=totals("ot"); const [rn,nn]=totals("nt");
+  const pct = n? (r/n*100) : 0;
+  $("sPct").textContent = (pct>0&&pct<1? pct.toFixed(1) : Math.floor(pct)) + "%";
+  $("sAll").textContent = r+" / "+n+" 篇";
+  $("sBar").style.width = pct+"%";
+  $("sOT").innerHTML = ro+"<small>/ "+no+"</small>";
+  $("sNT").innerHTML = rn+"<small>/ "+nn+"</small>";
+  const td=state.log[todayStr()]||0; $("sToday").innerHTML = td+"<small>篇</small>";
+  const goal = member&&memberStatus==="member" ? (member.goal||1) : 0;
+  $("sGoal").textContent = goal ? (td>=goal ? "已達成今日目標 "+goal+" 篇" : "今日目標 "+goal+" 篇，還差 "+(goal-td)+" 篇") : "";
+  $("sGoal").className = "goal"+(goal&&td>=goal?" met":"");
+  $("sStreak").innerHTML = streak()+"<small>天</small>";
+  $("sub").textContent = "新舊約生命讀經共 "+n+" 篇，每讀完一篇就點一格。";
+  // continue
+  let id=state.last&&BYID[state.last.id]?state.last.id:null, m=id?nextUnread(id):null;
+  if(!id||m===null){ id=null; for(const b of BOOKS){ const x=nextUnread(b.id); if(x!==null){id=b.id;m=x;break;} } }
+  if(id){ $("contText").textContent = (r? "接續閱讀："+BYID[id].name+" 第 "+m+" 篇" : "從創世記第一篇開始"); $("contLink").href=url(id,m); $("contLink").style.display=""; }
+  else { $("contText").textContent="新舊約生命讀經已全部讀完，願主祝福你的讀經生活。"; $("contLink").style.display="none"; }
+}
+function cardHTML(b){
+  const s=sets[b.id], r=s.size, pct=Math.round(r/b.n*100);
+  let dots=""; for(let m=1;m<=b.n;m++) dots+= s.has(m)?'<i class="on"></i>':'<i></i>';
+  const pill = r===b.n? '<span class="pill done">讀完</span>' : r? '<span class="pill doing">閱讀中</span>' : '<span class="pill">未開始</span>';
+  return `<button type="button" class="card${r===b.n?" complete":""}" data-id="${b.id}" aria-label="${b.name}，已讀 ${r} / ${b.n} 篇">
+    <div class="card-head"><span class="card-name">${b.name}</span><span class="card-count">${r} / ${b.n} 篇</span></div>
+    <div class="dots" aria-hidden="true">${dots}</div>
+    <div class="card-foot"><span>${pct}%</span>${pill}</div></button>`;
+}
+function renderList(){
+  let html="";
+  for(const [t,label] of [["ot","舊約"],["nt","新約"]]){
+    if(filter!=="all"&&filter!==t) continue;
+    const books=BOOKS.filter(b=>b.t===t && !(hideDone&&sets[b.id].size===b.n));
+    const [r,n]=totals(t); const done=BOOKS.filter(b=>b.t===t&&sets[b.id].size===b.n).length; const all=BOOKS.filter(b=>b.t===t).length;
+    html+=`<div class="testament"><h2>${label}</h2><span>${r} / ${n} 篇・讀完 ${done} / ${all} 卷</span></div>`;
+    html+= books.length? `<div class="grid">${books.map(cardHTML).join("")}</div>` : `<div class="empty">這部分的書卷都讀完了。</div>`;
+  }
+  $("list").innerHTML=html;
+}
+function renderPanel(){
+  if(!openId) return; const b=BYID[openId], s=sets[openId], nx=nextUnread(openId);
+  $("pTitle").textContent=b.name+" 生命讀經";
+  $("pMeta").textContent="已讀 "+s.size+" / "+b.n+" 篇・"+Math.round(s.size/b.n*100)+"%";
+  $("pBar").style.width=(s.size/b.n*100)+"%";
+  let h=""; for(let m=1;m<=b.n;m++){
+    const cls="cell"+(s.has(m)?" on":"")+(m===nx?" next":"");
+    const lbl=`第 ${m} 篇${s.has(m)?"，已讀":""}`;
+    h+= mode==="open" ? `<a class="${cls}" data-m="${m}" href="${url(openId,m)}" target="_blank" rel="noopener" aria-label="${lbl}">${m}</a>`
+                      : `<button type="button" class="${cls}" data-m="${m}" aria-pressed="${s.has(m)}" aria-label="${lbl}">${m}</button>`;
+  }
+  $("cells").innerHTML=h;
+  if(nx){ $("pNext").href=url(openId,nx); $("pNext").textContent="閱讀下一篇：第 "+nx+" 篇"; $("pNext").style.display=""; $("pHint").textContent="金色框為下一篇"; }
+  else { $("pNext").style.display="none"; $("pHint").textContent="本卷已全部讀完"; }
+  $("rFrom").max=$("rTo").max=b.n;
+}
+function renderAll(){ renderSummary(); renderList(); renderPanel(); renderBoard(); }
+
+// ---------- panel ----------
+let lastFocus=null;
+function openPanel(id){ openId=id; lastFocus=document.activeElement; $("rFrom").value=""; $("rTo").value=""; renderPanel(); $("overlay").classList.add("open"); $("overlay").setAttribute("aria-hidden","false"); $("pClose").focus(); }
+function closePanel(){ openId=null; $("overlay").classList.remove("open"); $("overlay").setAttribute("aria-hidden","true"); if(lastFocus&&lastFocus.focus) lastFocus.focus(); }
+function toast(t){ const el=$("toast"); el.textContent=t; el.classList.add("show"); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove("show"),1600); }
+
+$("list").addEventListener("click",e=>{ const c=e.target.closest(".card"); if(c) openPanel(c.dataset.id); });
+$("pClose").onclick=closePanel;
+$("overlay").addEventListener("click",e=>{ if(e.target.id==="overlay") closePanel(); });
+document.addEventListener("keydown",e=>{ if(e.key!=="Escape") return; const d=anyDlgOpen(); if(d) hideDlg(d); else if(openId) closePanel(); });
+$("cells").addEventListener("click",e=>{
+  const c=e.target.closest(".cell"); if(!c) return; const m=+c.dataset.m;
+  if(mode==="open"){ setRead(openId,m,true); }
+  else { const on=!sets[openId].has(m); setRead(openId,m,on); }
+  persist(); renderAll();
+  if(mode==="mark"){ const el=$("cells").querySelector(`[data-m="${m}"]`); if(el) el.focus(); }
+});
+$("pNext").addEventListener("click",()=>{ const nx=nextUnread(openId); if(nx){ setRead(openId,nx,true); persist(); setTimeout(renderAll,50); } });
+$("pAll").onclick=()=>{ const b=BYID[openId]; for(let m=1;m<=b.n;m++) setRead(openId,m,true); persist(); renderAll(); toast(b.name+" 已全部標記"); };
+let clearArm=null;
+$("pNone").onclick=()=>{
+  if(clearArm!==openId){ clearArm=openId; $("pNone").textContent="再按一次確認清除"; setTimeout(()=>{clearArm=null;$("pNone").textContent="清除本卷";},3000); return; }
+  clearArm=null; $("pNone").textContent="清除本卷";
+  const b=BYID[openId]; for(let m=1;m<=b.n;m++) setRead(openId,m,false); persist(); renderAll(); toast("已清除 "+b.name);
+};
+function rangeApply(on){
+  const b=BYID[openId]; let a=parseInt($("rFrom").value,10), z=parseInt($("rTo").value,10);
+  if(isNaN(a)&&isNaN(z)){ toast("請輸入篇數範圍"); return; } if(isNaN(a)) a=z; if(isNaN(z)) z=a; if(a>z)[a,z]=[z,a];
+  a=Math.max(1,a); z=Math.min(b.n,z); let c=0; for(let m=a;m<=z;m++) c+=setRead(openId,m,on);
+  persist(); renderAll(); toast(`第 ${a}–${z} 篇已設為${on?"已讀":"未讀"}`);
+}
+$("rMark").onclick=()=>rangeApply(true);
+$("rClear").onclick=()=>rangeApply(false);
+document.querySelectorAll("[data-m='mark'],[data-m='open']").forEach(btn=>btn.addEventListener("click",()=>{
+  mode=btn.dataset.m; document.querySelectorAll(".p-tools .seg button").forEach(x=>x.setAttribute("aria-pressed",x===btn)); renderPanel();
+}));
+document.querySelectorAll("[data-f]").forEach(btn=>btn.addEventListener("click",()=>{
+  filter=btn.dataset.f; document.querySelectorAll("[data-f]").forEach(x=>x.setAttribute("aria-pressed",x===btn)); renderList();
+}));
+$("hideDone").onchange=e=>{ hideDone=e.target.checked; renderList(); };
+
+// ---------- backup ----------
+function updateCode(){ packSets(); try{ $("code").value=btoa(unescape(encodeURIComponent(JSON.stringify({v:1,read:state.read,log:state.log,last:state.last})))); }catch(e){} }
+$("copyBtn").onclick=async()=>{ updateCode(); try{ await navigator.clipboard.writeText($("code").value); $("codeMsg").textContent="已複製進度碼"; }catch(e){ $("code").select(); $("codeMsg").textContent="請手動複製上方文字"; } };
+$("restoreBtn").onclick=()=>{
+  try{ const d=JSON.parse(decodeURIComponent(escape(atob($("code").value.trim())))); if(!d||!d.read) throw 0;
+    state.read=d.read; state.log=d.log||{}; state.last=d.last||null; loadSets(); persist(); renderAll(); $("codeMsg").textContent="已還原進度"; }
+  catch(e){ $("codeMsg").textContent="進度碼無法辨識，請確認是否完整貼上"; }
+};
+let resetArm=false;
+$("resetBtn").onclick=()=>{
+  if(!resetArm){ resetArm=true; $("resetBtn").textContent="再按一次確認清除全部"; setTimeout(()=>{resetArm=false;$("resetBtn").textContent="清除全部進度";},3000); return; }
+  resetArm=false; $("resetBtn").textContent="清除全部進度";
+  state.read={}; state.log={}; state.last=null; loadSets(); persist(); renderAll(); $("codeMsg").textContent="已清除全部進度";
+};
+
+// ---------- start ----------
+loadLocal(); loadSets(); renderAll(); updateCode(); connectRemote();
+</script>
+</body>
+</html>
