@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 會員公開資料：暱稱、小排、每日目標、進度摘要（供會員進度榜）
+    // 登入的會員都能讀；只有本人能新增、修改、刪除自己的資料
+    match /members/{uid} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.nickname is string
+        && request.resource.data.nickname.size() > 0
+        && request.resource.data.nickname.size() <= 20
+        && request.resource.data.group is string
+        && request.resource.data.group.size() <= 30
+        && request.resource.size() < 20000;
+      allow delete: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // 每個人的完整閱讀進度：只有本人能讀寫
+    match /progress/{uid} {
+      allow read, write: if request.auth != null
+        && request.auth.uid == uid;
+    }
+  }
+}

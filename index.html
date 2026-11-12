@@ -2,8 +2,17 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>生命讀經閱讀進度卡</title>
+<meta name="theme-color" content="#24493A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="生命讀經">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -49,7 +58,7 @@ a{color:var(--pine)}
 .wrap{max-width:1120px;margin:0 auto;padding:0 20px}
 
 /* Header */
-header.top{background:linear-gradient(160deg,#21483A 0%,#2E5B47 55%,#3D6B55 100%);color:#EEF4EC;padding:40px 0 34px}
+header.top{background:linear-gradient(160deg,#21483A 0%,#2E5B47 55%,#3D6B55 100%);color:#EEF4EC;padding:calc(40px + env(safe-area-inset-top)) env(safe-area-inset-right) 34px env(safe-area-inset-left)}
 :root[data-theme="dark"] header.top{background:linear-gradient(160deg,#13241C 0%,#1A3328 60%,#22402F 100%)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) header.top{background:linear-gradient(160deg,#13241C 0%,#1A3328 60%,#22402F 100%)}}
 .eyebrow{font-size:12px;letter-spacing:.24em;color:#BFD4BE;margin:0 0 6px}
@@ -182,7 +191,7 @@ h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,4.6vw,40px);l
 .panel.narrow{max-width:480px}
 .intro{color:var(--muted);font-size:14px;margin:8px 0 0}
 
-footer{color:var(--muted);font-size:12.5px;padding:18px 0 40px;text-align:center}
+footer{color:var(--muted);font-size:12.5px;padding:18px 0 calc(40px + env(safe-area-inset-bottom));text-align:center}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:99px;font-size:13px;opacity:0;pointer-events:none;transition:all .25s;z-index:30}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
@@ -382,10 +391,10 @@ footer{color:var(--muted);font-size:12.5px;padding:18px 0 40px;text-align:center
 //  Firebase 專案設定：依「設定說明.md」第 3 步，把你的設定貼在下面
 // ================================================================
 const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyDRxihlKJd5beSKqEEfZFXhucd8xhQ_slQ",
-  authDomain: "lifestudy-773a1.firebaseapp.com",
-  projectId: "lifestudy-773a1",
-  appId: "1:732188023008:web:e6d768e10d0e65ff279885"
+  apiKey: "請填入",
+  authDomain: "請填入",
+  projectId: "請填入",
+  appId: "請填入"
 };
 // ================================================================
 

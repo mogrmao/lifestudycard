@@ -1,0 +1,16 @@
+{
+  "name": "生命讀經閱讀進度卡",
+  "short_name": "生命讀經",
+  "description": "新舊約生命讀經閱讀進度紀錄",
+  "lang": "zh-Hant",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#E9EFE8",
+  "theme_color": "#24493A",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
