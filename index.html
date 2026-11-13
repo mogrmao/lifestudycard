@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-title" content="生命讀經">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -191,6 +191,23 @@ h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,4.6vw,40px);l
 .panel.narrow{max-width:480px}
 .intro{color:var(--muted);font-size:14px;margin:8px 0 0}
 
+/* Rounds */
+.roundinfo{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.14);font-size:13.5px;color:#D7E5D4}
+.roundinfo b{font-family:var(--display);font-weight:700;color:#fff;font-size:15px;letter-spacing:.04em}
+.roundinfo .hbtn{margin-left:auto}
+.history{margin:28px 0 0;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.history summary{cursor:pointer;font-weight:500}
+.hlist{display:grid;gap:0;margin-top:10px}
+.hrow{display:grid;grid-template-columns:72px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line);font-size:14px}
+.hrow:first-child{border-top:0}
+.hrow .hr-n{font-family:var(--display);font-weight:700;letter-spacing:.04em}
+.hrow .hr-d{color:var(--muted);font-variant-numeric:tabular-nums}
+.hrow .hr-c{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.hrow.now .hr-n{color:var(--pine)}
+.rlist{margin:12px 0 0;padding-left:1.2em;color:var(--ink);font-size:14px;display:grid;gap:6px}
+.warn{background:var(--mist);border-radius:10px;padding:10px 12px;font-size:13.5px;color:var(--ink);margin-top:12px}
+@media (max-width:420px){.roundinfo .hbtn{margin-left:0}.hrow{grid-template-columns:60px minmax(0,1fr)}.hrow .hr-c{grid-column:2;text-align:left}}
+
 footer{color:var(--muted);font-size:12.5px;padding:18px 0 calc(40px + env(safe-area-inset-bottom));text-align:center}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:99px;font-size:13px;opacity:0;pointer-events:none;transition:all .25s;z-index:30}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -225,6 +242,10 @@ footer{color:var(--muted);font-size:12.5px;padding:18px 0 calc(40px + env(safe-a
       <a id="contLink" href="https://line.twgbr.org/life-study/1.html" target="_blank" rel="noopener">前往閱讀</a>
       <span class="sync" id="sync">進度儲存在此瀏覽器</span>
     </div>
+    <div class="roundinfo">
+      <span><b id="roundNo">第 1 遍</b>　<span id="roundSince"></span></span>
+      <button type="button" class="hbtn" id="restartBtn">重新開始全部生命讀經</button>
+    </div>
   </div>
 </header>
 
@@ -251,6 +272,11 @@ footer{color:var(--muted);font-size:12.5px;padding:18px 0 calc(40px + env(safe-a
     <div class="rows" id="rows"></div>
     <p class="note" style="color:var(--muted);font-size:13px;margin:8px 0 0" id="boardNote"></p>
   </section>
+
+  <details class="history" id="historyBox">
+    <summary>讀經歷程</summary>
+    <div class="hlist" id="hlist"></div>
+  </details>
 
   <details class="backup">
     <summary>備份與還原進度</summary>
@@ -384,6 +410,23 @@ footer{color:var(--muted);font-size:12.5px;padding:18px 0 calc(40px + env(safe-a
     </div>
   </div>
 </div>
+<div class="overlay" id="rOverlay" aria-hidden="true">
+  <div class="panel narrow" role="dialog" aria-modal="true" aria-labelledby="rsTitle">
+    <div class="p-head">
+      <div>
+        <h3 id="rsTitle">重新開始全部生命讀經</h3>
+        <p class="intro" id="rsIntro"></p>
+      </div>
+      <button type="button" class="close" id="rsClose">關閉</button>
+    </div>
+    <ul class="rlist" id="rsList"></ul>
+    <div class="warn" id="rsWarn" hidden></div>
+    <div class="p-actions">
+      <button type="button" class="btn primary" id="rsGo">開始新的一遍</button>
+      <button type="button" class="btn quiet" id="rsCancel">取消</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast" role="status"></div>
 
 <script type="module">
@@ -425,7 +468,13 @@ let sets = {};          // id -> Set of read message numbers
 let filter = "all", hideDone = false, mode = "mark", openId = null;
 
 const todayStr = ()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
-function loadSets(){ sets={}; for(const b of BOOKS){ const s=state.read[b.id]; sets[b.id]=new Set((s?String(s).split(","):[]).filter(Boolean).map(Number).filter(x=>x>=1&&x<=b.n)); } }
+const fmtDate = s => s ? String(s).replace(/-/g,"/") : "";
+function ensureRound(){
+  if(!(state.round>=1)) state.round=1;
+  if(!Array.isArray(state.history)) state.history=[];
+  if(!state.roundStart){ const ks=Object.keys(state.log||{}).sort(); state.roundStart = ks[0] || todayStr(); }
+}
+function loadSets(){ ensureRound(); sets={}; for(const b of BOOKS){ const s=state.read[b.id]; sets[b.id]=new Set((s?String(s).split(","):[]).filter(Boolean).map(Number).filter(x=>x>=1&&x<=b.n)); } }
 function packSets(){ const r={}; for(const id in sets){ if(sets[id].size) r[id]=[...sets[id]].sort((a,b)=>a-b).join(","); } state.read=r; }
 
 // ---------- persistence ----------
@@ -461,7 +510,7 @@ function onWriteFail(e){ setSync(e&&e.code==="permission-denied" ? "沒有寫入
 
 function stats(){
   const [r]=totals(), [ro]=totals("ot"), [rn]=totals("nt");
-  return {read:r, ot:ro, nt:rn, books:BOOKS.filter(b=>sets[b.id].size===b.n).length,
+  return {round:state.round||1, read:r, ot:ro, nt:rn, books:BOOKS.filter(b=>sets[b.id].size===b.n).length,
           streak:streak(), today:state.log[todayStr()]||0, todayDate:todayStr(), lastAt:state.updated||Date.now()};
 }
 function memberBody(){
@@ -549,7 +598,7 @@ function renderMemberBar(){
 let dLast=null;
 function showDlg(id){ dLast=document.activeElement; $(id).classList.add("open"); $(id).setAttribute("aria-hidden","false"); }
 function hideDlg(id){ $(id).classList.remove("open"); $(id).setAttribute("aria-hidden","true"); if(dLast&&dLast.focus) dLast.focus(); }
-function anyDlgOpen(){ return ["aOverlay","mOverlay"].find(id=>$(id).classList.contains("open")); }
+function anyDlgOpen(){ return ["aOverlay","mOverlay","rOverlay"].find(id=>$(id).classList.contains("open")); }
 
 const AUTH_ERR = {
   "auth/email-already-in-use":"這個帳號已經有人使用，請換一個。",
@@ -665,7 +714,7 @@ function renderBoard(){
   const total=totals()[1], today=todayStr(), yday=yesterday();
   const list=boardDocs.filter(m=>m.showOnBoard&&m.stats&&typeof m.nickname==="string").map(m=>{
     const s=m.stats||{}; return {id:m.id, nick:String(m.nickname).slice(0,20), group:String(m.group||"").slice(0,30), goal:+m.goal||1,
-      read:+s.read||0, ot:+s.ot||0, nt:+s.nt||0, books:+s.books||0,
+      round:+s.round||1, read:+s.read||0, ot:+s.ot||0, nt:+s.nt||0, books:+s.books||0,
       streak: (s.todayDate===today || s.todayDate===yday) ? (+s.streak||0) : 0,
       today: s.todayDate===today ? (+s.today||0) : 0};
   });
@@ -684,7 +733,7 @@ function renderBoard(){
     nm.append(b,g);
     const pr=document.createElement("div"); pr.className="mprog";
     const bar=document.createElement("div"); bar.className="mbar"; const fill=document.createElement("i"); fill.style.width=Math.min(100,m.read/total*100)+"%"; bar.appendChild(fill);
-    const st=document.createElement("div"); st.className="mstat"; st.textContent=`舊約 ${m.ot}・新約 ${m.nt}・讀完 ${m.books} 卷・今日 ${m.today}/${m.goal}`;
+    const st=document.createElement("div"); st.className="mstat"; st.textContent=`第 ${m.round} 遍・舊約 ${m.ot}・新約 ${m.nt}・讀完 ${m.books} 卷・今日 ${m.today}/${m.goal}`;
     pr.append(bar,st);
     const num=document.createElement("div"); num.className="mnum";
     const big=document.createElement("b"); const small=document.createElement("span");
@@ -737,7 +786,8 @@ function renderSummary(){
   let id=state.last&&BYID[state.last.id]?state.last.id:null, m=id?nextUnread(id):null;
   if(!id||m===null){ id=null; for(const b of BOOKS){ const x=nextUnread(b.id); if(x!==null){id=b.id;m=x;break;} } }
   if(id){ $("contText").textContent = (r? "接續閱讀："+BYID[id].name+" 第 "+m+" 篇" : "從創世記第一篇開始"); $("contLink").href=url(id,m); $("contLink").style.display=""; }
-  else { $("contText").textContent="新舊約生命讀經已全部讀完，願主祝福你的讀經生活。"; $("contLink").style.display="none"; }
+  else { $("contText").textContent="第 "+state.round+" 遍新舊約生命讀經已全部讀完，可以重新開始下一遍。"; $("contLink").style.display="none"; }
+  renderRound(r,n);
 }
 function cardHTML(b){
   const s=sets[b.id], r=s.size, pct=Math.round(r/b.n*100);
@@ -818,19 +868,70 @@ document.querySelectorAll("[data-f]").forEach(btn=>btn.addEventListener("click",
 }));
 $("hideDone").onchange=e=>{ hideDone=e.target.checked; renderList(); };
 
+// ---------- rounds ----------
+function renderRound(r,n){
+  $("roundNo").textContent="第 "+state.round+" 遍";
+  $("roundSince").textContent="自 "+fmtDate(state.roundStart)+" 開始";
+  const done = r===n;
+  $("restartBtn").className = "hbtn"+(done?" solid":"");
+  $("restartBtn").textContent = done ? "開始第 "+(state.round+1)+" 遍" : "重新開始全部生命讀經";
+  // history list
+  const list=$("hlist"); list.textContent="";
+  const rows=[{round:state.round,start:state.roundStart,end:null,read:r,total:n,now:true}].concat(state.history.slice().reverse());
+  rows.forEach(x=>{
+    const row=document.createElement("div"); row.className="hrow"+(x.now?" now":"");
+    const a=document.createElement("span"); a.className="hr-n"; a.textContent="第 "+x.round+" 遍";
+    const b=document.createElement("span"); b.className="hr-d"; b.textContent=fmtDate(x.start)+" – "+(x.now?"進行中":fmtDate(x.end));
+    const c=document.createElement("span"); c.className="hr-c";
+    const pct=x.total? Math.round(x.read/x.total*100):0;
+    c.textContent = x.read+" / "+x.total+" 篇"+(x.read===x.total?"・讀完":"・"+pct+"%");
+    row.append(a,b,c); list.appendChild(row);
+  });
+  $("historyBox").querySelector("summary").textContent = "讀經歷程（共 "+(state.history.length+1)+" 遍）";
+}
+function openRestart(){
+  const [r,n]=totals(), next=state.round+1, left=n-r;
+  $("rsTitle").textContent="重新開始全部生命讀經";
+  $("rsIntro").textContent="目前是第 "+state.round+" 遍，已讀 "+r+" / "+n+" 篇。";
+  const items=[
+    "第 "+state.round+" 遍的紀錄會保存在「讀經歷程」裡。",
+    "所有篇目會清空，從創世記第 1 篇重新讀起，進入第 "+next+" 遍。",
+    "每日閱讀紀錄和連續天數會保留，不會歸零。"
+  ];
+  const ul=$("rsList"); ul.textContent=""; items.forEach(t=>{ const li=document.createElement("li"); li.textContent=t; ul.appendChild(li); });
+  const w=$("rsWarn");
+  if(left>0){ w.hidden=false; w.textContent="這一遍還有 "+left+" 篇沒有讀，確定要重新開始嗎？"; }
+  else { w.hidden=true; }
+  $("rsGo").textContent="開始第 "+next+" 遍";
+  showDlg("rOverlay"); setTimeout(()=>$("rsCancel").focus(),30);
+}
+$("restartBtn").onclick=openRestart;
+$("rsClose").onclick=$("rsCancel").onclick=()=>hideDlg("rOverlay");
+$("rOverlay").addEventListener("click",e=>{ if(e.target.id==="rOverlay") hideDlg("rOverlay"); });
+$("rsGo").onclick=()=>{
+  const [r,n]=totals();
+  state.history.push({round:state.round, start:state.roundStart, end:todayStr(), read:r, total:n});
+  if(state.history.length>100) state.history=state.history.slice(-100);
+  state.round+=1; state.roundStart=todayStr(); state.read={}; state.last=null;
+  for(const id in sets) sets[id]=new Set();
+  if(openId) closePanel();
+  persist(); renderAll(); hideDlg("rOverlay");
+  toast("第 "+state.round+" 遍開始了，願主祝福");
+};
+
 // ---------- backup ----------
-function updateCode(){ packSets(); try{ $("code").value=btoa(unescape(encodeURIComponent(JSON.stringify({v:1,read:state.read,log:state.log,last:state.last})))); }catch(e){} }
+function updateCode(){ packSets(); try{ $("code").value=btoa(unescape(encodeURIComponent(JSON.stringify({v:2,read:state.read,log:state.log,last:state.last,round:state.round,roundStart:state.roundStart,history:state.history})))); }catch(e){} }
 $("copyBtn").onclick=async()=>{ updateCode(); try{ await navigator.clipboard.writeText($("code").value); $("codeMsg").textContent="已複製進度碼"; }catch(e){ $("code").select(); $("codeMsg").textContent="請手動複製上方文字"; } };
 $("restoreBtn").onclick=()=>{
   try{ const d=JSON.parse(decodeURIComponent(escape(atob($("code").value.trim())))); if(!d||!d.read) throw 0;
-    state.read=d.read; state.log=d.log||{}; state.last=d.last||null; loadSets(); persist(); renderAll(); $("codeMsg").textContent="已還原進度"; }
+    state.read=d.read; state.log=d.log||{}; state.last=d.last||null; state.round=d.round||1; state.roundStart=d.roundStart||null; state.history=Array.isArray(d.history)?d.history:[]; loadSets(); persist(); renderAll(); $("codeMsg").textContent="已還原進度"; }
   catch(e){ $("codeMsg").textContent="進度碼無法辨識，請確認是否完整貼上"; }
 };
 let resetArm=false;
 $("resetBtn").onclick=()=>{
   if(!resetArm){ resetArm=true; $("resetBtn").textContent="再按一次確認清除全部"; setTimeout(()=>{resetArm=false;$("resetBtn").textContent="清除全部進度";},3000); return; }
   resetArm=false; $("resetBtn").textContent="清除全部進度";
-  state.read={}; state.log={}; state.last=null; loadSets(); persist(); renderAll(); $("codeMsg").textContent="已清除全部進度";
+  state.read={}; state.log={}; state.last=null; state.round=1; state.roundStart=todayStr(); state.history=[]; loadSets(); persist(); renderAll(); $("codeMsg").textContent="已清除全部進度與讀經歷程";
 };
 
 // ---------- start ----------
